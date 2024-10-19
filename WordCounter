@@ -1,0 +1,113 @@
+public class Main {
+    public static void main(String[] args) {
+        new wcFrame();
+    }
+}
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+public class wcFrame extends JFrame implements ActionListener {
+
+    JButton button;
+    JTextArea ta;
+    JLabel header;
+    JLabel tfl;
+    JLabel max;
+    JFrame wcFrame;
+    JPanel wcHeader;
+    int maxChars = 550;
+    wcFrame(){
+        wcFrame = new JFrame();
+        wcFrame.setTitle("Word Counter");
+        wcFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        wcFrame.setLayout(null);
+        wcFrame.setSize(600,400);
+        wcFrame.setLocationRelativeTo(null);
+        max = new JLabel("Max Characters: 550");
+        max.setBounds(20,240 ,130,20);
+        max.setFont(new Font("Sans Serif", Font.PLAIN,12));
+        wcFrame.add(max);
+
+        creatingPanel();
+        creatingTextField();
+        countButton();
+
+        wcFrame.setResizable(false);
+        wcFrame.setVisible(true);
+    }
+    public void creatingPanel(){
+        wcHeader = new JPanel();
+        header = new JLabel("Word Counter");
+        header.setVerticalTextPosition(JLabel.CENTER);
+
+        header.setForeground(Color.black);
+        header.setFont(new Font("Sans Serif", Font.BOLD,22));
+
+
+        wcHeader.setSize(600,50);
+        wcHeader.setBackground(Color.lightGray);
+        wcHeader.add(header);
+        wcFrame.add(wcHeader);
+    }
+    public void creatingTextField(){
+        tfl = new JLabel("Type a paragraph:");
+        tfl.setForeground(Color.black);
+        tfl.setFont(new Font("Sans Serif", Font.PLAIN, 16));
+        tfl.setBounds(20, 60, 150, 20);
+        wcFrame.add(tfl);
+
+        ta = new JTextArea(5,20);
+        ta.setBounds(20, 90, 550, 150);
+        ta.setLineWrap(true);
+        ta.setWrapStyleWord(true);
+        ta.setFont(new Font("Sans Serif", Font.PLAIN,14));
+        ta.setMargin(new Insets(5, 5, 5, 5));
+        ta.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                if (ta.getText().length() >= maxChars) {
+                    e.consume();
+                }
+            }
+        });
+
+        wcFrame.add(ta);
+    }
+    public void countButton(){
+        button = new JButton("Count");
+        button.setBounds(240,280, 100,50);
+        button.setFocusable(false);
+        button.addActionListener(this);
+        wcFrame.add(button);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if(e.getSource()== button){
+            String paragraph = ta.getText();
+            paragraph = paragraph.trim();
+                   wordCounter counter = new wordCounter();
+                   int words = counter.calcWords(paragraph);
+                   JOptionPane.showMessageDialog(null,"Total words are: " + words);
+        }
+    }
+}
+public class wordCounter {
+    int count = 1;
+    public int calcWords(String paragraph){
+        if(paragraph.isEmpty())
+            return 0;
+        else {
+            for (int i = 0; i < paragraph.length() - 1; i++) {
+                if (paragraph.charAt(i) == ' ' && paragraph.charAt(i + 1) != ' ')
+                    count++;
+            }
+            return count;
+        }
+    }
+}
+
