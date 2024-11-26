@@ -1,0 +1,135 @@
+import java.util.Scanner;
+public class Main {
+    private Review[] reviews;
+    private int reviewCount;
+    private static final int MAX_REVIEWS = 100; // Maximum number of reviews
+
+    public Main() {
+        reviews = new Review[MAX_REVIEWS];
+        reviewCount = 0;
+    }
+
+    public void addReview(String hotelName, String reviewerName, int rating, String comment) {
+        if (reviewCount < MAX_REVIEWS) {
+            reviews[reviewCount] = new Review(hotelName, reviewerName, rating, comment);
+            reviewCount++;
+        } else {
+            System.out.println("Cannot add more reviews. Maximum limit reached.");
+        }
+    }
+
+    public void displayReviews() {
+        if (reviewCount == 0) {
+            System.out.println("No reviews available.");
+            return;
+        }
+        for (int i = 0; i < reviewCount; i++) {
+            System.out.println(reviews[i]);
+        }
+    }
+
+    public void filterReviewsByHotel(String hotelName) {
+        boolean found = false;
+        for (int i = 0; i < reviewCount; i++) {
+            if (reviews[i].getHotelName().equalsIgnoreCase(hotelName)) {
+                System.out.println(reviews[i]);
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("No reviews found for hotel: " + hotelName);
+        }
+    }
+
+    public void sortReviewsByRating() {
+        for (int i = 0; i < reviewCount - 1; i++) {
+            for (int j = 0; j < reviewCount - 1 - i; j++) {
+                if (reviews[j].getRating() < reviews[j + 1].getRating()) {
+
+                    Review temp = reviews[j];
+                    reviews[j] = reviews[j + 1];
+                    reviews[j + 1] = temp;
+                }
+            }
+        }
+        System.out.println("Reviews sorted by rating:");
+        displayReviews();
+    }
+
+    public static void main(String[] args) {
+        Main system = new Main();
+        Scanner scanner = new Scanner(System.in);
+        int choice;
+
+        do {
+            System.out.println("\nHotel Review System");
+            System.out.println("1. Add Review");
+            System.out.println("2. Display All Reviews");
+            System.out.println("3. Filter Reviews by Hotel");
+            System.out.println("4. Sort Reviews by Rating");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter hotel name: ");
+                    String hotelName = scanner.nextLine();
+                    System.out.print("Enter your name: ");
+                    String reviewerName = scanner.nextLine();
+                    System.out.print("Enter rating (1-5): ");
+                    int rating = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.print("Enter comment: ");
+                    String comment = scanner.nextLine();
+                    system.addReview(hotelName, reviewerName, rating, comment);
+                    break;
+                case 2:
+                    system.displayReviews();
+                    break;
+                case 3:
+                    System.out.print("Enter hotel name to filter: ");
+                    String filterHotel = scanner.nextLine();
+                    system.filterReviewsByHotel(filterHotel);
+                    break;
+                case 4:
+                    system.sortReviewsByRating();
+                    break;
+                case 5:
+                    System.out.println("Exiting...");
+                    break;
+                default:
+                    System.out.println("Invalid choice! Please try again.");
+            }
+        } while (choice != 5);
+
+        scanner.close();
+    }
+}
+    class Review {
+        private String hotelName;
+        private String reviewerName;
+        private int rating;
+        private String comment;
+
+        public Review(String hotelName, String reviewerName, int rating, String comment) {
+            this.hotelName = hotelName;
+            this.reviewerName = reviewerName;
+            this.rating = rating;
+            this.comment = comment;
+        }
+
+        public String getHotelName() {
+            return hotelName;
+        }
+
+        public int getRating() {
+            return rating;
+        }
+
+        @Override
+        public String toString() {
+            return "Hotel: " + hotelName + ", Reviewer: " + reviewerName + ", Rating: " + rating + ", Comment: " + comment;
+        }
+    }
