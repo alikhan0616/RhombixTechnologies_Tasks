@@ -1,0 +1,261 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Date;
+
+// Employee Class
+
+// Main Leave Management System
+public class LeaveManagementSystem extends JFrame {
+    // Lists to store employees and leave requests
+    private ArrayList<Employee> employees;
+    private ArrayList<LeaveRequest> allLeaveRequests;
+
+    // Swing Components
+    private JTextField empIdField, nameField, departmentField;
+    private JTextField leaveEmpIdField, leaveDaysField, leaveTypeField;
+    private JTextArea outputArea;
+    private JTable employeeTable, leaveRequestTable;
+    private DefaultTableModel employeeTableModel, leaveRequestTableModel;
+
+    public LeaveManagementSystem() {
+        employees = new ArrayList<>();
+        allLeaveRequests = new ArrayList<>();
+        initializeComponents();
+    }
+
+    private void initializeComponents() {
+        setTitle("Employee Leave Management System");
+        setSize(800, 600);
+        setLayout(new BorderLayout());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Employee Registration Panel
+        JPanel registrationPanel = new JPanel(new GridLayout(4, 2));
+        registrationPanel.setBorder(BorderFactory.createTitledBorder("Employee Registration"));
+
+        registrationPanel.add(new JLabel("Employee ID:"));
+        empIdField = new JTextField();
+        registrationPanel.add(empIdField);
+
+        registrationPanel.add(new JLabel("Name:"));
+        nameField = new JTextField();
+        registrationPanel.add(nameField);
+
+        registrationPanel.add(new JLabel("Department:"));
+        departmentField = new JTextField();
+        registrationPanel.add(departmentField);
+
+        JButton registerButton = new JButton("Register Employee");
+        registerButton.addActionListener(e -> registerEmployee());
+        registrationPanel.add(registerButton);
+
+        // Leave Application Panel
+        JPanel leavePanel = new JPanel(new GridLayout(5, 2));
+        leavePanel.setBorder(BorderFactory.createTitledBorder("Leave Application"));
+
+        leavePanel.add(new JLabel("Employee ID:"));
+        leaveEmpIdField = new JTextField();
+        leavePanel.add(leaveEmpIdField);
+
+        leavePanel.add(new JLabel("Leave Days:"));
+        leaveDaysField = new JTextField();
+        leavePanel.add(leaveDaysField);
+
+        leavePanel.add(new JLabel("Leave Type:"));
+        leaveTypeField = new JTextField();
+        leavePanel.add(leaveTypeField);
+
+        JButton applyLeaveButton = new JButton("Apply Leave");
+        applyLeaveButton.addActionListener(e -> applyLeave());
+        leavePanel.add(applyLeaveButton);
+
+        // Employees Table
+        String[] employeeColumnNames = {"Employee ID", "Name", "Department", "Available Leaves"};
+        employeeTableModel = new DefaultTableModel(employeeColumnNames, 0);
+        employeeTable = new JTable(employeeTableModel);
+
+        // Leave Requests Table
+        String[] leaveColumnNames = {"Employee ID", "Name", "Days", "Leave Type", "Status"};
+        leaveRequestTableModel = new DefaultTableModel(leaveColumnNames, 0);
+        leaveRequestTable = new JTable(leaveRequestTableModel);
+
+        // Tabbed Pane
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Employees", new JScrollPane(employeeTable));
+        tabbedPane.addTab("Leave Requests", new JScrollPane(leaveRequestTable));
+
+        // Output Area
+        outputArea = new JTextArea();
+        outputArea.setEditable(false);
+
+        // Add Components
+        add(registrationPanel, BorderLayout.NORTH);
+        add(leavePanel, BorderLayout.CENTER);
+        add(tabbedPane, BorderLayout.EAST);
+        add(new JScrollPane(outputArea), BorderLayout.SOUTH);
+    }
+
+    // Employee Registration Method
+    private void registerEmployee() {
+        String empId = empIdField.getText();
+        String name = nameField.getText();
+        String department = departmentField.getText();
+
+        if (!empId.isEmpty() && !name.isEmpty() && !department.isEmpty()) {
+            // Check if employee already exists
+            if (findEmployeeById(empId) == null) {
+                Employee newEmployee = new Employee(empId, name, department);
+                employees.add(newEmployee);
+
+                // Update Employee Table
+                employeeTableModel.addRow(new Object[]{
+                        newEmployee.getEmpId(),
+                        newEmployee.getName(),
+                        newEmployee.getDepartment(),
+                        newEmployee.getAvailableLeaves()
+                });
+
+                outputArea.append("Employee Registered: " + name + "\n");
+                clearRegistrationFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Employee ID already exists!");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please fill all fields");
+        }
+    }
+
+    // Apply Leave Method
+    private void applyLeave() {
+        String empId = leaveEmpIdField.getText();
+        String daysStr = leaveDaysField.getText();
+        String leaveType = leaveTypeField.getText();
+
+        try {
+            int days = Integer.parseInt(daysStr);
+            Employee employee = findEmployeeById(empId);
+
+            if (employee != null) {
+                LeaveRequest request = new LeaveRequest(employee, new Date(), days, leaveType);
+
+                if (employee.applyLeave(request)) {
+                    allLeaveRequests.add(request);
+
+                    // Update Leave Request Table
+                    leaveRequestTableModel.addRow(new Object[]{
+                            employee.getEmpId(),
+                            employee.getName(),
+                            days, leaveType,
+                            request.getStatus()
+                    });
+
+                    outputArea.append("Leave Applied: " + employee.getName() +
+                            ", Days: " + days +
+                            ", Remaining Leaves: " + employee.getAvailableLeaves() + "\n");
+                    clearLeaveFields();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Insufficient Leave Balance");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Employee Not Found");
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Invalid Leave Days");
+        }
+    }
+
+    // Method to find employee by ID
+    private Employee findEmployeeById(String empId) {
+        for (Employee emp : employees) {
+            if (emp.getEmpId().equals(empId)) {
+                return emp;
+            }
+        }
+        return null;
+    }
+
+    // Clear registration fields
+    private void clearRegistrationFields() {
+        empIdField.setText("");
+        nameField.setText("");
+        departmentField.setText("");
+    }
+
+    // Clear leave fields
+    private void clearLeaveFields() {
+        leaveEmpIdField.setText("");
+        leaveDaysField.setText("");
+        leaveTypeField.setText("");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new LeaveManagementSystem().setVisible(true);
+        });
+    }
+}
+class Employee {
+    private String empId;
+    private String name;
+    private String department;
+    private int totalLeaves;
+    private int availableLeaves;
+    private ArrayList<LeaveRequest> leaveRequests;
+
+    public Employee(String empId, String name, String department) {
+        this.empId = empId;
+        this.name = name;
+        this.department = department;
+        this.totalLeaves = 20; // Default annual leaves
+        this.availableLeaves = 20;
+        this.leaveRequests = new ArrayList<>();
+    }
+
+    // Getters
+    public String getEmpId() { return empId; }
+    public String getName() { return name; }
+    public String getDepartment() { return department; }
+    public int getAvailableLeaves() { return availableLeaves; }
+    public ArrayList<LeaveRequest> getLeaveRequests() { return leaveRequests; }
+
+    // Method to apply leave
+    public boolean applyLeave(LeaveRequest request) {
+        if (request.getDays() <= availableLeaves) {
+            availableLeaves -= request.getDays();
+            leaveRequests.add(request);
+            return true;
+        }
+        return false;
+    }
+}
+// Leave Request Class
+class LeaveRequest {
+    private Employee employee;
+    private Date startDate;
+    private int days;
+    private String leaveType;
+    private LeaveStatus status;
+
+    public enum LeaveStatus {
+        PENDING, APPROVED, REJECTED
+    }
+
+    public LeaveRequest(Employee employee, Date startDate, int days, String leaveType) {
+        this.employee = employee;
+        this.startDate = startDate;
+        this.days = days;
+        this.leaveType = leaveType;
+        this.status = LeaveStatus.PENDING;
+    }
+
+    // Getters
+    public Employee getEmployee() { return employee; }
+    public Date getStartDate() { return startDate; }
+    public int getDays() { return days; }
+    public String getLeaveType() { return leaveType; }
+    public LeaveStatus getStatus() { return status; }
+    public void setStatus(LeaveStatus status) { this.status = status; }
+}
